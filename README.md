@@ -1,59 +1,173 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/AttendanceIQ-Tracker-e85d26?style=for-the-badge&logo=clockify&logoColor=white" alt="AttendanceIQ">
 </p>
 
-## About Laravel
+<h1 align="center">AttendanceIQ — Attendance Tracker System</h1>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  A modern, responsive employee attendance tracking system built with <strong>Laravel 12</strong> and <strong>MySQL</strong>.<br>
+  Manage employees, track time-in/out, handle leave requests, and process payroll — all from a clean dashboard.
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.2-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2">
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Authentication & Roles
+- Username-based login (no email required)
+- Role-based access control — **Admin** and **Employee** portals
+- Middleware-protected routes per role
+- Password change functionality
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Admin Dashboard
+- Overview statistics: total employees, present today, on leave, pending requests
+- Live clock with real-time updates
+- Quick-access navigation sidebar
+- Fully responsive — collapsible sidebar with hamburger menu on mobile
 
-## Laravel Sponsors
+### Employee Management (CRUD)
+- Full Create / Read / Update / Delete for employee records
+- **Auto-generated Employee IDs** (EMP-001, EMP-002, …)
+- Search and filter by name, department, or position
+- Automatic user account creation with employee
+- Paginated employee listing
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Time-In / Time-Out (Attendance)
+- 4-step sequential time tap: **AM In → Lunch Out → PM In → Final Out**
+- Live clock display on the time-tap panel
+- Visual progress dots showing current tap step
+- Daily attendance records with timestamps
+- Employee self-service — tap from their own dashboard
+- Admin can view and manage all attendance records
 
-### Premium Partners
+### Leave Management
+- Employees can submit leave requests (Sick, Vacation, Personal, Emergency, Maternity, Paternity)
+- Date range selection with reason field
+- Admin approval/rejection workflow
+- Pending leave count badge in sidebar
+- Leave history per employee
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Payroll
+- Admin payroll overview and management
+- Per-employee basic salary tracking
+- Payroll records linked to attendance data
 
-## Contributing
+### Responsive Design
+- Mobile-first responsive layouts for both Admin and Employee portals
+- Collapsible sidebar with dark overlay on mobile
+- Topbar with hamburger toggle (< 768px)
+- Adaptive stat grids, tables, and form layouts
+- Touch-friendly buttons and controls
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### UI / UX
+- Clean, modern design with **Syne** + **DM Sans** typography
+- Dark sidebar with accent-colored active states
+- Card-based dashboard with shadow and rounded corners
+- Badge system for statuses (Present, Late, Absent, Pending, Approved, Rejected)
+- Auto-dismissing flash alerts
+- Font Awesome 6 icons throughout
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Tech Stack
 
-## Security Vulnerabilities
+| Layer       | Technology                  |
+|-------------|-----------------------------|
+| Backend     | PHP 8.2, Laravel 12         |
+| Database    | MySQL 8.0                   |
+| Frontend    | Blade Templates, Vanilla CSS/JS |
+| Auth        | Laravel built-in (session-based) |
+| Icons       | Font Awesome 6              |
+| Fonts       | Google Fonts (Syne, DM Sans)|
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Daddycode11/attendance-tracker-system.git
+cd attendance-tracker-system
+
+# Install dependencies
+composer install
+
+# Copy environment file and generate key
+cp .env.example .env
+php artisan key:generate
+
+# Configure your database in .env
+# DB_DATABASE=employees
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# Run migrations and seed
+php artisan migrate
+php artisan db:seed --class=AdminSeeder
+
+# Start the development server
+php artisan serve
+```
+
+## Default Accounts
+
+| Role     | Username       | Password       |
+|----------|----------------|----------------|
+| Admin    | admin          | Admin@1234     |
+| Employee | juan.cruz      | Employee@1234  |
+| Employee | maria.santos   | Employee@1234  |
+| Employee | carlo.reyes    | Employee@1234  |
+| Employee | ana.lim        | Employee@1234  |
+| Employee | robert.garcia  | Employee@1234  |
+
+---
+
+## Project Structure
+
+```
+app/
+├── Http/Controllers/
+│   ├── AdminController.php       # Admin dashboard
+│   ├── AttendanceController.php  # Attendance CRUD + time tap
+│   ├── AuthController.php        # Login / logout / password
+│   ├── EmployeeController.php    # Employee CRUD + employee dashboard
+│   ├── LeaveController.php       # Leave requests & approval
+│   └── PayrollController.php     # Payroll management
+├── Models/
+│   ├── Attendance.php
+│   ├── Employee.php
+│   ├── Leave.php
+│   ├── Payroll.php
+│   └── User.php
+└── Middleware/
+    └── RoleMiddleware.php        # Role-based route protection
+
+resources/views/
+├── layouts/
+│   ├── admin.blade.php           # Admin layout (sidebar + topbar)
+│   └── employee.blade.php        # Employee layout (sidebar + topbar)
+├── admin/
+│   ├── dashboard.blade.php
+│   ├── employees/ (index, create, edit, show)
+│   ├── attendance/ (index, create, edit)
+│   ├── leaves/index.blade.php
+│   └── payroll/index.blade.php
+├── employee/
+│   ├── dashboard.blade.php       # Time tap panel
+│   ├── attendance.blade.php      # Attendance history
+│   └── leaves.blade.php          # Leave requests
+└── auth/login.blade.php
+```
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-sourced under the [MIT License](https://opensource.org/licenses/MIT).
