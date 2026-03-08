@@ -28,6 +28,7 @@
                         <th>Days</th>
                         <th>Reason</th>
                         <th>Status</th>
+                        <th>Admin Remarks</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,6 +49,7 @@
                                 {{ $leave->status }}
                             </span>
                         </td>
+                        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $leave->admin_remarks ?? '—' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -112,7 +114,15 @@
 
 <style>
     @media (max-width: 768px) {
-        .leaves-grid { grid-template-columns: 1fr !important; }
+        .leaves-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .leaves-grid > .card:last-child {
+            order: -1; /* Request form first on mobile */
+        }
+    }
+    @media (max-width: 480px) {
+        .leaves-grid .btn { font-size: .78rem !important; padding: 10px 14px !important; }
     }
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px; }

@@ -57,15 +57,23 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                        value="{{ old('email') }}" placeholder="e.g. juan@example.com">
+                    @error('email')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                    <div class="form-hint" style="font-size:.73rem;color:var(--muted);">Used as default recipient when sending attendance reports</div>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Department <span style="color:var(--danger);">*</span></label>
-                    <input type="text" name="department" list="departmentList"
-                        class="form-control @error('department') is-invalid @enderror"
-                        value="{{ old('department') }}" placeholder="e.g. Engineering" required>
-                    <datalist id="departmentList">
+                    <select name="department" class="form-control @error('department') is-invalid @enderror" required>
+                        <option value="">— Select Department —</option>
                         @foreach($departments as $d)
-                        <option value="{{ $d }}">
+                        <option value="{{ $d }}" {{ old('department') == $d ? 'selected' : '' }}>{{ $d }}</option>
                         @endforeach
-                    </datalist>
+                    </select>
                     @error('department')
                     <div class="form-error">{{ $message }}</div>
                     @enderror
@@ -73,14 +81,12 @@
 
                 <div class="form-group">
                     <label class="form-label">Position <span style="color:var(--danger);">*</span></label>
-                    <input type="text" name="position" list="positionList"
-                        class="form-control @error('position') is-invalid @enderror"
-                        value="{{ old('position') }}" placeholder="e.g. Software Engineer" required>
-                    <datalist id="positionList">
+                    <select name="position" class="form-control @error('position') is-invalid @enderror" required>
+                        <option value="">— Select Position —</option>
                         @foreach($positions as $p)
-                        <option value="{{ $p }}">
+                        <option value="{{ $p }}" {{ old('position') == $p ? 'selected' : '' }}>{{ $p }}</option>
                         @endforeach
-                    </datalist>
+                    </select>
                     @error('position')
                     <div class="form-error">{{ $message }}</div>
                     @enderror
@@ -145,7 +151,7 @@
     </div>
 
     {{-- Submit --}}
-    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+    <div class="form-submit-row" style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
         <a href="{{ route('admin.employees.index') }}" class="btn btn-outline">Cancel</a>
         <button type="submit" class="btn btn-accent">
             <i class="fa-solid fa-user-plus"></i> Create Employee
@@ -157,6 +163,10 @@
     .form-grid { margin-bottom: 0; }
     @media (max-width: 768px) {
         .form-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 480px) {
+        .form-submit-row { flex-direction: column; }
+        .form-submit-row .btn { width: 100%; justify-content: center; }
     }
     .card-body { padding: 20px; }
     .form-group { margin-bottom: 16px; }

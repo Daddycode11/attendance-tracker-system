@@ -236,5 +236,8 @@
 @media(max-width:900px){
     .dash-grid { grid-template-columns: 1fr !important; }
 }
+@media(max-width:768px){
+    .dash-grid { gap: 14px !important; }
+}
 </style>
 @endsection

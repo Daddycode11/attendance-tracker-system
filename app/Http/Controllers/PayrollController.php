@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Payroll;
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\Holiday;
+use App\Models\Leave;
+use App\Models\PayrollSetting;
 use Carbon\Carbon;
 
 class PayrollController extends Controller
@@ -37,6 +40,17 @@ class PayrollController extends Controller
         $startDate = Carbon::parse($month . '-01')->startOfMonth();
         $endDate   = $startDate->copy()->endOfMonth();
 
+        // Load configurable settings
+        $settings    = PayrollSetting::current();
+        $workingDays = $settings->working_days_per_month;
+        $workingHrs  = $settings->working_hours_per_day;
+        $otMultiplier = (float) $settings->ot_rate_multiplier;
+        $graceMin    = $settings->late_grace_minutes;
+
+        // Count holidays in this month
+        $holidayCount = Holiday::whereBetween('date', [$startDate, $endDate])->count();
+        $effectiveWorkingDays = max(1, $workingDays - $holidayCount);
+
         $employees = Employee::all();
         $generated = 0;
 
@@ -45,19 +59,42 @@ class PayrollController extends Controller
                             ->whereBetween('date', [$startDate, $endDate])
                             ->get();
 
-            $daysPresent  = $attendances->whereIn('status', ['Present', 'Late'])->count();
-            $absentDays   = $attendances->where('status', 'Absent')->count();
-            $totalLate    = $attendances->sum('late_minutes');
-            $totalOT      = $attendances->sum('overtime_minutes');
-            $workingDays  = 22;
+            // Count approved leave days for this employee in this month
+            $approvedLeaveDays = 0;
+            $approvedLeaves = Leave::where('employee_id', $emp->id)
+                ->where('status', 'Approved')
+                ->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('start_date', [$startDate, $endDate])
+                      ->orWhereBetween('end_date', [$startDate, $endDate])
+                      ->orWhere(function ($q2) use ($startDate, $endDate) {
+                          $q2->where('start_date', '<=', $startDate)
+                             ->where('end_date', '>=', $endDate);
+                      });
+                })->get();
 
-            $dailyRate      = $emp->basic_salary / $workingDays;
-            $minuteRate     = $dailyRate / 480; // 8hrs * 60
-            $hourRate       = $dailyRate / 8;
+            foreach ($approvedLeaves as $leave) {
+                $leaveStart = $leave->start_date->max($startDate);
+                $leaveEnd   = $leave->end_date->min($endDate);
+                $approvedLeaveDays += $leaveStart->diffInDays($leaveEnd) + 1;
+            }
+
+            $daysPresent  = $attendances->whereIn('status', ['Present', 'Late'])->count();
+            $rawAbsent    = $attendances->where('status', 'Absent')->count();
+            $absentDays   = max(0, $rawAbsent - $approvedLeaveDays);
+
+            // Apply grace period to late minutes
+            $totalLate = $attendances->sum(function ($att) use ($graceMin) {
+                return max(0, $att->late_minutes - $graceMin);
+            });
+            $totalOT = $attendances->sum('overtime_minutes');
+
+            $dailyRate      = $emp->basic_salary / $effectiveWorkingDays;
+            $minuteRate     = $dailyRate / ($workingHrs * 60);
+            $hourRate       = $dailyRate / $workingHrs;
 
             $lateDeduction  = round($minuteRate * $totalLate, 2);
             $absentDeduction= round($dailyRate * $absentDays, 2);
-            $overtimePay    = round($hourRate * ($totalOT / 60), 2);
+            $overtimePay    = round($hourRate * $otMultiplier * ($totalOT / 60), 2);
             $deductions     = $lateDeduction + $absentDeduction;
             $netSalary      = round($emp->basic_salary + $overtimePay - $deductions, 2);
 
@@ -78,7 +115,7 @@ class PayrollController extends Controller
         }
 
         return redirect()->route('admin.payroll.index', ['month' => $month])
-            ->with('success', "Payroll generated for {$generated} employees ({$month}).");
+            ->with('success', "Payroll generated for {$generated} employees ({$month}). Holidays: {$holidayCount}, Working days: {$effectiveWorkingDays}.");
     }
 
     public function show(Payroll $payroll)

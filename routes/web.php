@@ -7,6 +7,10 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\PositionController;
+use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\PayrollSettingController;
 
 /* ─────────────────────────────────────
    PUBLIC
@@ -31,6 +35,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
 
     // Employees CRUD
     Route::resource('employees', EmployeeController::class);
+    Route::post('employees/{employee}/email-attendance', [EmployeeController::class, 'emailAttendance'])->name('employees.email-attendance');
 
     // Attendance CRUD
     Route::get   ('attendance',            [AttendanceController::class, 'index'])  ->name('attendance.index');
@@ -53,6 +58,28 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('leaves', LeaveController::class);
     Route::post('leaves/{leave}/approve', [LeaveController::class,'approve'])->name('leaves.approve');
     Route::post('leaves/{leave}/reject',  [LeaveController::class,'reject']) ->name('leaves.reject');
+
+    // Departments
+    Route::get   ('departments',              [DepartmentController::class,'index'])  ->name('departments.index');
+    Route::post  ('departments',              [DepartmentController::class,'store'])  ->name('departments.store');
+    Route::put   ('departments/{department}', [DepartmentController::class,'update']) ->name('departments.update');
+    Route::delete('departments/{department}', [DepartmentController::class,'destroy'])->name('departments.destroy');
+
+    // Positions
+    Route::get   ('positions',            [PositionController::class,'index'])  ->name('positions.index');
+    Route::post  ('positions',            [PositionController::class,'store'])  ->name('positions.store');
+    Route::put   ('positions/{position}', [PositionController::class,'update']) ->name('positions.update');
+    Route::delete('positions/{position}', [PositionController::class,'destroy'])->name('positions.destroy');
+
+    // Holidays
+    Route::get   ('holidays',            [HolidayController::class,'index'])  ->name('holidays.index');
+    Route::post  ('holidays',            [HolidayController::class,'store'])  ->name('holidays.store');
+    Route::put   ('holidays/{holiday}',  [HolidayController::class,'update']) ->name('holidays.update');
+    Route::delete('holidays/{holiday}',  [HolidayController::class,'destroy'])->name('holidays.destroy');
+
+    // Payroll Settings
+    Route::get ('settings/payroll',      [PayrollSettingController::class,'edit'])  ->name('settings.payroll');
+    Route::put ('settings/payroll',      [PayrollSettingController::class,'update'])->name('settings.payroll.update');
 });
 
 /* ─────────────────────────────────────
@@ -62,7 +89,9 @@ Route::middleware(['auth', 'role:Employee'])->prefix('employee')->name('employee
     Route::get ('dashboard',  [EmployeeController::class, 'dashboard'])       ->name('dashboard');
     Route::get ('attendance', [AttendanceController::class, 'employeeView'])  ->name('attendance');
     Route::post('attendance', [AttendanceController::class, 'tapTime'])       ->name('attendance.tap');
+    Route::post('attendance/email', [AttendanceController::class, 'emailAttendance'])->name('attendance.email');
     Route::get ('leaves',     [LeaveController::class, 'employeeLeaves'])     ->name('leaves');
     Route::post('leaves',     [LeaveController::class, 'employeeStore'])      ->name('leaves.store');
     Route::post('change-password', [AuthController::class,'changePassword'])  ->name('change-password');
+    Route::get ('profile',         [AuthController::class,'employeeProfileView'])->name('profile');
 });

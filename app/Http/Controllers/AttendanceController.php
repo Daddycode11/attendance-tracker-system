@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Attendance;
+use App\Models\AttendanceLog;
 use App\Models\Employee;
+use App\Mail\AttendanceReport;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -71,7 +74,16 @@ class AttendanceController extends Controller
             $data['overtime_minutes'] = max(0, $actualOut->diffInMinutes($officialOut, false));
         }
 
+        $oldValues = $attendance->getOriginal();
         $attendance->update($data);
+
+        AttendanceLog::create([
+            'attendance_id' => $attendance->id,
+            'user_id'       => auth()->id(),
+            'action'        => 'updated',
+            'old_values'    => $oldValues,
+            'new_values'    => $attendance->fresh()->toArray(),
+        ]);
 
         return redirect()->route('admin.attendance.index')
             ->with('success', 'Attendance record updated.');
@@ -80,6 +92,14 @@ class AttendanceController extends Controller
     // ── ADMIN: Delete attendance record
     public function destroy(Attendance $attendance)
     {
+        AttendanceLog::create([
+            'attendance_id' => $attendance->id,
+            'user_id'       => auth()->id(),
+            'action'        => 'deleted',
+            'old_values'    => $attendance->toArray(),
+            'new_values'    => null,
+        ]);
+
         $attendance->delete();
         return back()->with('success', 'Attendance record deleted.');
     }
@@ -124,7 +144,15 @@ class AttendanceController extends Controller
             $data['overtime_minutes'] = max(0, $actualOut->diffInMinutes($officialOut, false));
         }
 
-        Attendance::create($data);
+        $record = Attendance::create($data);
+
+        AttendanceLog::create([
+            'attendance_id' => $record->id,
+            'user_id'       => auth()->id(),
+            'action'        => 'created',
+            'old_values'    => null,
+            'new_values'    => $record->toArray(),
+        ]);
 
         return redirect()->route('admin.attendance.index')
             ->with('success', 'Attendance record created.');
@@ -194,5 +222,23 @@ class AttendanceController extends Controller
         $attendance->save();
 
         return back()->with('tap_success', $msg);
+    }
+
+    // ── EMPLOYEE: Email attendance report
+    public function emailAttendance(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:255',
+        ]);
+
+        $employee = auth()->user()->employee;
+        $records  = Attendance::where('employee_id', $employee->id)
+                        ->orderByDesc('date')->take(15)->get();
+
+        Mail::to($request->email)->send(
+            new AttendanceReport($employee->name, $employee->employee_id, $records)
+        );
+
+        return back()->with('success', 'Attendance report sent to ' . $request->email);
     }
 }

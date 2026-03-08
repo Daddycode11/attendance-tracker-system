@@ -16,6 +16,7 @@ class Leave extends Model
         'end_date',
         'reason',
         'status',       // Pending | Approved | Rejected
+        'admin_remarks',
     ];
 
     protected $casts = [

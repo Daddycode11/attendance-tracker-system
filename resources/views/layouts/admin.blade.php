@@ -6,6 +6,7 @@
     <title>@yield('title', 'Dashboard') — AttendanceIQ Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -341,6 +342,8 @@
         .sidebar-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,.5); z-index: 299;
+            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(2px);
         }
         .sidebar-overlay.show { display: block; }
 
@@ -352,6 +355,7 @@
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
+                width: 260px;
             }
             .sidebar.open { transform: translateX(0); }
 
@@ -359,23 +363,81 @@
             .topbar-toggle { display: flex; }
 
             .main-wrap { margin-left: 0; }
-            .main-content { padding: 20px 16px; }
+            .main-content { padding: 20px 14px; }
 
-            .form-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr !important; }
             .form-group.full { grid-column: 1; }
 
             .topbar-clock, .topbar-date { display: none; }
 
             .topbar-logout span { display: none; }
             .topbar-logout { padding: 7px 10px; }
+
+            .filter-bar { flex-direction: column; }
+            .filter-bar .form-group { min-width: 100%; }
+            .filter-bar > div { width: 100%; display: flex; gap: 8px; }
+            .filter-bar > div .btn { flex: 1; margin-top: 0 !important; text-align: center; justify-content: center; }
+
+            .page-header { flex-direction: column; gap: 12px; }
+            .page-header-actions { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+            .page-header-actions .btn { flex: 1; min-width: 0; justify-content: center; text-align: center; }
+            .page-header-actions form { flex: 1; min-width: 0; }
+            .page-header-actions form .btn { width: 100%; justify-content: center; }
+
+            .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-num { font-size: 1.5rem; }
+            .stat-label { font-size: .72rem; }
+
+            /* Table: horizontal scroll */
+            .table-wrap { -webkit-overflow-scrolling: touch; }
+            table { min-width: 600px; }
+
+            /* Action buttons in table cells */
+            td .btn-sm { padding: 5px 8px; font-size: .72rem; }
+
+            .sidebar-close-btn { display: flex; }
         }
 
         @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: repeat(2,1fr); }
-            .page-header { flex-direction: column; }
-            .main-content { padding: 16px 12px; }
-            th, td { padding: 10px 10px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .main-content { padding: 14px 10px; }
+            th, td { padding: 10px 8px; font-size: .78rem; }
+
+            .page-header h1 { font-size: 1.15rem; }
+            .page-header p { font-size: .78rem; }
+
+            .btn { font-size: .78rem; padding: 8px 12px; }
+            .btn-sm { font-size: .72rem; padding: 5px 8px; }
+            .btn i { font-size: .72rem; }
+
+            .card { border-radius: 10px; }
+            .card-body { padding: 14px; }
+            .card-header { padding: 12px 14px; }
+
+            .pagination { justify-content: center; }
+
+            /* Stack action buttons text hidden, icon only */
+            .page-header-actions .btn span.btn-text { display: none; }
         }
+
+        @media (max-width: 360px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .topbar-breadcrumb strong { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .main-content { padding: 10px 8px; }
+        }
+
+        /* Sidebar close button (mobile only) */
+        .sidebar-close-btn {
+            display: none; position: absolute; top: 14px; right: 10px;
+            background: transparent; border: none; color: rgba(255,255,255,.4);
+            font-size: 1.2rem; cursor: pointer; padding: 6px;
+            border-radius: 6px; transition: color .2s, background .2s;
+            z-index: 10;
+        }
+        .sidebar-close-btn:hover { color: #fff; background: rgba(255,255,255,.08); }
 
         /* ── MISC ── */
         .text-muted { color: var(--muted); }
@@ -407,6 +469,9 @@
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Close sidebar">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
     <a href="{{ route('admin.dashboard') }}" class="sidebar-logo">
         <div class="logo-sq"></div>
         <span class="logo-text">AttendanceIQ</span>
@@ -425,6 +490,14 @@
            class="nav-link {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
             <i class="fa-solid fa-users"></i> Employees
         </a>
+        <a href="{{ route('admin.departments.index') }}"
+           class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-building"></i> Departments
+        </a>
+        <a href="{{ route('admin.positions.index') }}"
+           class="nav-link {{ request()->routeIs('admin.positions.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-briefcase"></i> Positions
+        </a>
 
         <div class="nav-group-label">Attendance</div>
         <a href="{{ route('admin.attendance.index') }}"
@@ -439,11 +512,19 @@
                 <span class="nav-badge">{{ $pendingCount }}</span>
             @endif
         </a>
+        <a href="{{ route('admin.holidays.index') }}"
+           class="nav-link {{ request()->routeIs('admin.holidays.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-umbrella-beach"></i> Holidays
+        </a>
 
         <div class="nav-group-label">Finance</div>
         <a href="{{ route('admin.payroll.index') }}"
            class="nav-link {{ request()->routeIs('admin.payroll.*') ? 'active' : '' }}">
             <i class="fa-solid fa-peso-sign"></i> Payroll
+        </a>
+        <a href="{{ route('admin.settings.payroll') }}"
+           class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-gear"></i> Payroll Settings
         </a>
 
         <div class="nav-group-label">Account</div>
@@ -507,20 +588,6 @@
 <div class="main-wrap">
     <main class="main-content">
 
-        {{-- Flash messages --}}
-        @if(session('success'))
-        <div class="alert alert-success">
-            <i class="fa-solid fa-circle-check"></i>
-            {{ session('success') }}
-        </div>
-        @endif
-        @if(session('error'))
-        <div class="alert alert-danger">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            {{ session('error') }}
-        </div>
-        @endif
-
         @yield('content')
     </main>
 </div>
@@ -542,30 +609,68 @@ function toggleSidebar(){
     const o=document.getElementById('overlay');
     s.classList.toggle('open');
     o.classList.toggle('show');
+    document.body.style.overflow = s.classList.contains('open') ? 'hidden' : '';
 }
 function closeSidebar(){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = '';
 }
 window.addEventListener('resize',()=>{ if(window.innerWidth>768)closeSidebar(); });
+/* Close sidebar when nav link clicked on mobile */
+document.querySelectorAll('.sidebar-nav .nav-link').forEach(link=>{
+    link.addEventListener('click',()=>{ if(window.innerWidth<=768) closeSidebar(); });
+});
 
-/* Confirm deletes */
+/* SweetAlert2 flash modals */
+@if(session('success'))
+Swal.fire({
+    icon: 'success',
+    title: 'Success!',
+    text: {!! json_encode(session('success')) !!},
+    confirmButtonColor: '#0d1117',
+    background: '#fff',
+    customClass: { popup: 'swal-modern' },
+    timer: 3000,
+    timerProgressBar: true,
+    showConfirmButton: true
+});
+@endif
+@if(session('error'))
+Swal.fire({
+    icon: 'error',
+    title: 'Error!',
+    text: {!! json_encode(session('error')) !!},
+    confirmButtonColor: '#dc2626',
+    background: '#fff',
+    customClass: { popup: 'swal-modern' }
+});
+@endif
+
+/* SweetAlert2 delete confirmation */
 document.addEventListener('click', e => {
     const btn = e.target.closest('[data-confirm]');
     if(!btn) return;
-    if(!confirm(btn.dataset.confirm || 'Are you sure?')){
-        e.preventDefault();
-    }
-});
-
-/* Auto-dismiss alerts */
-setTimeout(()=>{
-    document.querySelectorAll('.alert').forEach(el=>{
-        el.style.transition='opacity .5s';
-        el.style.opacity='0';
-        setTimeout(()=>el.remove(),500);
+    e.preventDefault();
+    const form = btn.closest('form');
+    Swal.fire({
+        title: 'Are you sure?',
+        text: btn.dataset.confirm || 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fa-solid fa-trash"></i> Yes, delete',
+        cancelButtonText: 'Cancel',
+        background: '#fff',
+        customClass: { popup: 'swal-modern' },
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed && form) {
+            form.submit();
+        }
     });
-}, 5000);
+});
 </script>
 
 @yield('scripts')

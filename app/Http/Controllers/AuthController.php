@@ -26,7 +26,8 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('username', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return $this->redirectByRole(Auth::user()->role);
+            return $this->redirectByRole(Auth::user()->role)
+                ->with('success', 'Welcome back, ' . Auth::user()->username . '! You have logged in successfully.');
         }
 
         return back()
@@ -45,6 +46,11 @@ class AuthController extends Controller
     public function profileView()
     {
         return view('admin.profile');
+    }
+
+    public function employeeProfileView()
+    {
+        return view('employee.profile');
     }
 
     public function changePassword(Request $request)

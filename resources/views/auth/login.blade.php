@@ -365,6 +365,7 @@
             letter-spacing: 0.05em;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -550,6 +551,20 @@
     }
     updateLeftClock();
     setInterval(updateLeftClock, 1000);
+
+    // SweetAlert2 flash modals
+    @if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: {!! json_encode(session('success')) !!},
+        confirmButtonColor: '#0d1117',
+        background: '#fff',
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: true
+    });
+    @endif
 </script>
 
 </body>

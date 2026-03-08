@@ -12,7 +12,7 @@
     </div>
 </div>
 
-<div style="max-width: 580px;">
+<div class="profile-container" style="max-width: 580px;">
 
     {{-- ── Account Info Card ── --}}
     <div class="card" style="margin-bottom: 20px;">
@@ -125,5 +125,27 @@
     </div>
 
 </div>
+
+<style>
+    .card-body { padding: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px; color: var(--ink); }
+    .form-control {
+        width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+        border-radius: 8px; font-size: .88rem; font-family: inherit;
+        background: var(--white); transition: border-color .2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,93,38,.1); }
+    .form-control.is-invalid { border-color: var(--danger); }
+    .invalid-feedback { color: var(--danger); font-size: .76rem; margin-top: 4px; }
+
+    @media (max-width: 768px) {
+        .profile-container { max-width: 100% !important; }
+    }
+    @media (max-width: 480px) {
+        .profile-container { max-width: 100% !important; }
+        .profile-container .btn { width: 100%; justify-content: center; }
+    }
+</style>
 
 @endsection

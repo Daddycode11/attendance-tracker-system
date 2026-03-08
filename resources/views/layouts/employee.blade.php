@@ -6,6 +6,7 @@
     <title>@yield('title', 'Dashboard') — AttendanceIQ</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -208,8 +209,20 @@
         .sidebar-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,.5); z-index: 299;
+            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(2px);
         }
         .sidebar-overlay.show { display: block; }
+
+        /* Sidebar close button (mobile only) */
+        .sidebar-close-btn {
+            display: none; position: absolute; top: 14px; right: 10px;
+            background: transparent; border: none; color: rgba(255,255,255,.4);
+            font-size: 1.2rem; cursor: pointer; padding: 6px;
+            border-radius: 6px; transition: color .2s, background .2s;
+            z-index: 10;
+        }
+        .sidebar-close-btn:hover { color: #fff; background: rgba(255,255,255,.08); }
 
         /* ── RESPONSIVE ── */
         @media (max-width: 1024px) {
@@ -217,7 +230,10 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
             .sidebar.open { transform: translateX(0); }
 
             .topbar { left: 0; }
@@ -226,20 +242,47 @@
             .main-wrap { margin-left: 0; }
             .content { padding: 20px 16px; }
 
-            .form-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr !important; }
             .form-group.full { grid-column: 1; }
 
             .topbar-clock, .topbar-date { display: none; }
 
             .topbar-logout span { display: none; }
             .topbar-logout { padding: 7px 10px; }
+
+            .page-header { flex-direction: column; gap: 12px; }
+            .page-header-actions { width: 100%; }
+            .page-header-actions .btn { flex: 1; justify-content: center; }
+
+            .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+            .table-wrap { -webkit-overflow-scrolling: touch; }
+            table { min-width: 500px; }
+
+            .sidebar-close-btn { display: flex; }
+
+            .filter-bar { flex-direction: column !important; gap: 8px !important; }
+            .filter-bar .form-control,
+            .filter-bar .btn,
+            .filter-bar select { width: 100% !important; }
         }
 
         @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
             .page-header { flex-direction: column; }
-            .content { padding: 16px 12px; }
-            th, td { padding: 10px 10px; }
+            .content { padding: 14px 10px; }
+            th, td { padding: 10px 8px; font-size: .78rem; }
+
+            .page-header h1 { font-size: 1.15rem; }
+            .btn { font-size: .78rem; padding: 8px 14px; }
+            .card { border-radius: 10px; }
+            .card-body { padding: 14px; }
+        }
+
+        @media (max-width: 360px) {
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
     @yield('styles')
@@ -251,6 +294,9 @@
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Close sidebar">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
     <a href="{{ route('employee.dashboard') }}" class="sidebar-logo">
         <div class="logo-sq"></div>
         <span class="logo-text">AttendanceIQ</span>
@@ -266,6 +312,11 @@
         </a>
         <a href="{{ route('employee.leaves') }}" class="nav-link {{ request()->routeIs('employee.leaves*') ? 'active' : '' }}">
             <i class="fa-solid fa-calendar-xmark"></i> Leaves
+        </a>
+
+        <div class="nav-group-label">Account</div>
+        <a href="{{ route('employee.profile') }}" class="nav-link {{ request()->routeIs('employee.profile') ? 'active' : '' }}">
+            <i class="fa-solid fa-user-gear"></i> My Profile
         </a>
     </nav>
 
@@ -314,13 +365,6 @@
 <!-- MAIN -->
 <div class="main-wrap">
     <div class="content">
-        @if(session('success'))
-        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i> {{ session('success') }}</div>
-        @endif
-        @if(session('tap_success'))
-        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i> {{ session('tap_success') }}</div>
-        @endif
-
         @yield('content')
     </div>
 </div>
@@ -342,12 +386,18 @@ function toggleSidebar(){
     const o=document.getElementById('overlay');
     s.classList.toggle('open');
     o.classList.toggle('show');
+    document.body.style.overflow = s.classList.contains('open') ? 'hidden' : '';
 }
 function closeSidebar(){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = '';
 }
 window.addEventListener('resize',()=>{ if(window.innerWidth>768)closeSidebar(); });
+/* Close sidebar when nav link clicked on mobile */
+document.querySelectorAll('.sidebar-nav .nav-link').forEach(link=>{
+    link.addEventListener('click',()=>{ if(window.innerWidth<=768) closeSidebar(); });
+});
 
 /* Auto-dismiss alerts */
 setTimeout(()=>{
@@ -357,6 +407,44 @@ setTimeout(()=>{
         setTimeout(()=>el.remove(),500);
     });
 }, 5000);
+
+/* SweetAlert2 flash modals */
+@if(session('success'))
+Swal.fire({
+    icon: 'success',
+    title: 'Success!',
+    text: {!! json_encode(session('success')) !!},
+    confirmButtonColor: '#0d1117',
+    background: '#fff',
+    customClass: { popup: 'swal-modern' },
+    timer: 3000,
+    timerProgressBar: true,
+    showConfirmButton: true
+});
+@endif
+@if(session('tap_success'))
+Swal.fire({
+    icon: 'success',
+    title: 'Time Recorded!',
+    text: {!! json_encode(session('tap_success')) !!},
+    confirmButtonColor: '#0d1117',
+    background: '#fff',
+    customClass: { popup: 'swal-modern' },
+    timer: 3000,
+    timerProgressBar: true,
+    showConfirmButton: true
+});
+@endif
+@if(session('error'))
+Swal.fire({
+    icon: 'error',
+    title: 'Error!',
+    text: {!! json_encode(session('error')) !!},
+    confirmButtonColor: '#dc2626',
+    background: '#fff',
+    customClass: { popup: 'swal-modern' }
+});
+@endif
 </script>
 
 @yield('scripts')

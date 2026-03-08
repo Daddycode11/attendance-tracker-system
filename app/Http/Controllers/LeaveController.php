@@ -83,15 +83,23 @@ class LeaveController extends Controller
     }
 
     // Quick approve/reject
-    public function approve(Leave $leave)
+    public function approve(Request $request, Leave $leave)
     {
-        $leave->update(['status' => 'Approved']);
+        $request->validate(['admin_remarks' => 'nullable|string|max:500']);
+        $leave->update([
+            'status' => 'Approved',
+            'admin_remarks' => $request->admin_remarks,
+        ]);
         return back()->with('success', 'Leave approved.');
     }
 
-    public function reject(Leave $leave)
+    public function reject(Request $request, Leave $leave)
     {
-        $leave->update(['status' => 'Rejected']);
+        $request->validate(['admin_remarks' => 'nullable|string|max:500']);
+        $leave->update([
+            'status' => 'Rejected',
+            'admin_remarks' => $request->admin_remarks,
+        ]);
         return back()->with('success', 'Leave rejected.');
     }
 

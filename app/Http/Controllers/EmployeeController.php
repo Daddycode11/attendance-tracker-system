@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Employee;
 use App\Models\User;
 use App\Models\Department;
 use App\Models\Position;
+use App\Mail\AttendanceReport;
 
 class EmployeeController extends Controller
 {
@@ -30,15 +32,15 @@ class EmployeeController extends Controller
         }
 
         $employees   = $query->orderBy('name')->paginate(15)->withQueryString();
-        $departments = Employee::distinct()->pluck('department')->filter()->sort()->values();
+        $departments = Department::orderBy('name')->pluck('name');
 
         return view('admin.employees.index', compact('employees', 'departments'));
     }
 
     public function create()
     {
-        $departments = Employee::distinct()->pluck('department')->filter()->sort()->values();
-        $positions   = Employee::distinct()->pluck('position')->filter()->sort()->values();
+        $departments = Department::orderBy('name')->pluck('name');
+        $positions   = Position::orderBy('name')->pluck('name');
         $nextEmployeeId = $this->generateEmployeeId();
         return view('admin.employees.create', compact('departments', 'positions', 'nextEmployeeId'));
     }
@@ -61,6 +63,7 @@ class EmployeeController extends Controller
     {
         $request->validate([
             'name'         => 'required|string|max:100',
+            'email'        => 'nullable|email|max:255',
             'department'   => 'required|string|max:50',
             'position'     => 'required|string|max:50',
             'basic_salary' => 'required|numeric|min:0',
@@ -71,6 +74,7 @@ class EmployeeController extends Controller
         $employee = Employee::create([
             'employee_id'  => $this->generateEmployeeId(),
             'name'         => $request->name,
+            'email'        => $request->email,
             'department'   => $request->department,
             'position'     => $request->position,
             'basic_salary' => $request->basic_salary,
@@ -94,11 +98,26 @@ class EmployeeController extends Controller
         return view('admin.employees.show', compact('employee', 'recentAttendance'));
     }
 
+    public function emailAttendance(Request $request, Employee $employee)
+    {
+        $request->validate([
+            'email' => 'required|email|max:255',
+        ]);
+
+        $records = $employee->attendances()->orderByDesc('date')->take(30)->get();
+
+        Mail::to($request->email)->send(
+            new AttendanceReport($employee->name, $employee->employee_id, $records)
+        );
+
+        return back()->with('success', 'Attendance report for ' . $employee->name . ' sent to ' . $request->email);
+    }
+
     public function edit(Employee $employee)
     {
         $employee->load('user');
-        $departments = Employee::distinct()->pluck('department')->filter()->sort()->values();
-        $positions   = Employee::distinct()->pluck('position')->filter()->sort()->values();
+        $departments = Department::orderBy('name')->pluck('name');
+        $positions   = Position::orderBy('name')->pluck('name');
         return view('admin.employees.edit', compact('employee', 'departments', 'positions'));
     }
 
@@ -106,6 +125,7 @@ class EmployeeController extends Controller
     {
         $request->validate([
             'name'         => 'required|string|max:100',
+            'email'        => 'nullable|email|max:255',
             'department'   => 'required|string|max:50',
             'position'     => 'required|string|max:50',
             'basic_salary' => 'required|numeric|min:0',
@@ -114,6 +134,7 @@ class EmployeeController extends Controller
 
         $employee->update([
             'name'         => $request->name,
+            'email'        => $request->email,
             'department'   => $request->department,
             'position'     => $request->position,
             'basic_salary' => $request->basic_salary,

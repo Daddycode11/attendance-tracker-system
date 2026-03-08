@@ -173,7 +173,22 @@
 
 <style>
     @media (max-width: 768px) {
-        .dash-grid { grid-template-columns: 1fr !important; }
+        .dash-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .dash-grid > .card:last-child {
+            order: -1; /* Time Tap panel first on mobile */
+        }
+    }
+    @media (max-width: 480px) {
+        .dash-grid #liveClock {
+            font-size: 1.8rem !important;
+        }
+        .dash-grid .btn-lg {
+            padding: 12px 20px !important;
+            font-size: .9rem !important;
+        }
+        .page-header h1 { font-size: 1.1rem !important; }
     }
 </style>
 
